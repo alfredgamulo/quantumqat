@@ -3,14 +3,11 @@
 # QuantumQat
 [![build-isengard](https://github.com/alfredgamulo/quantumqat/actions/workflows/build.yml/badge.svg)](https://github.com/alfredgamulo/quantumqat/actions/workflows/build.yml)
 
-
-# Purpose
+The purpose in building this image is to cater to people who identify as gamers first, and as coders second.
 
 This repository builds a custom Universal Blue image. THANK YOU to the giants that work on the Universal Blue Projects:
 - [Bazzite](https://bazzite.gg/)
 - [Universal Blue](https://github.com/ublue-os)
-
-This template includes a Containerfile and a Github workflow for building the container image. As soon as the workflow is enabled in your repository, it will build the container image and push it to the Github Container Registry.
 
 # How to Use
 
