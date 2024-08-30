@@ -1,4 +1,8 @@
-# image-template
+![QuantumQat Logo](assets/logo.jpg)
+
+# QuantumQat
+[![build-isengard](https://github.com/alfredgamulo/quantumqat/actions/workflows/build.yml/badge.svg)](https://github.com/alfredgamulo/quantumqat/actions/workflows/build.yml)
+
 
 # Purpose
 

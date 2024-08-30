@@ -6,6 +6,6 @@ FROM ghcr.io/ublue-os/${SOURCE_IMAGE}${SOURCE_SUFFIX}:${SOURCE_TAG}
 
 COPY scripts /scripts
 
-RUN /scripts/0_prepare.sh && \
-    /scripts/1_build.sh && \
+RUN /scripts/00_prepare.sh && \
+    /scripts/10_build.sh && \
     ostree container commit
