@@ -28,7 +28,7 @@ rpm-ostree rebase ostree-image-signed:docker://ghcr.io/alfredgamulo/quantumqat:l
 
 ## ISO
 
-You can build an [ISO][https://blue-build.org/learn/universal-blue/#fresh-install-from-an-iso] for offline installation by running
+You can build an [ISO](https://blue-build.org/learn/universal-blue/#fresh-install-from-an-iso) for offline installation by running
 
 ```bash
 sudo podman run --rm --privileged \
