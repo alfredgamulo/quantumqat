@@ -1,4 +1,4 @@
-![QuantumQat Logo](assets/logo.jpg)
+![QuantumQat Logo](assets/logo.jpeg)
 
 # QuantumQat
 [![build-isengard](https://github.com/alfredgamulo/quantumqat/actions/workflows/build.yml/badge.svg)](https://github.com/alfredgamulo/quantumqat/actions/workflows/build.yml)
