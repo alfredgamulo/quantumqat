@@ -20,10 +20,25 @@ This repository has a GitHub workflow that automatically builds and publishes th
 
 ## Rebasing
 
-Assumingyou are running a vanilla installation of any Universal Blue system, then you can rebase to this image by running
+If you are already running a vanilla installation of any Universal Blue system, then you can rebase to this image by running
 
 ```bash
 rpm-ostree rebase ostree-image-signed:docker://ghcr.io/alfredgamulo/quantumqat:latest
+```
+
+## ISO
+
+You can build an [ISO][https://blue-build.org/learn/universal-blue/#fresh-install-from-an-iso] for offline installation by running
+
+```bash
+sudo podman run --rm --privileged \
+    --volume .:/build-container-installer/build \
+    --security-opt label=disable --pull=newer \
+    ghcr.io/jasonn3/build-container-installer:latest \
+    IMAGE_REPO="ghcr.io/alfredgamulo" \
+    IMAGE_NAME="quantumqat" \
+    IMAGE_TAG="latest" \
+    VARIANT="Silverblue"
 ```
 
 # Verification
