@@ -1,7 +1,7 @@
 ![QuantumQat Logo](assets/logo.jpeg)
 
 # QuantumQat
-[![build-isengard](https://github.com/alfredgamulo/quantumqat/actions/workflows/build.yml/badge.svg)](https://github.com/alfredgamulo/quantumqat/actions/workflows/build.yml)
+[![build-quantumqat](https://github.com/alfredgamulo/quantumqat/actions/workflows/build.yml/badge.svg)](https://github.com/alfredgamulo/quantumqat/actions/workflows/build.yml)
 
 The purpose in building this image is to cater to people who identify as gamers first, and as coders second.
 

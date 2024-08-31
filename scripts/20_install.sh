@@ -14,14 +14,9 @@ programming_packages=(
   "code"
 )
 
-# utility_packages=(
-#   "1password"
-# )
-
 packages=(
   ${docker_packages[@]}
   ${programming_packages[@]}
-  ${utility_packages[@]}
 )
 
 rpm-ostree install ${packages[@]}
