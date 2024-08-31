@@ -1,7 +1,7 @@
 ![QuantumQat Logo](assets/logo.jpeg)
 
 # QuantumQat
-[![build-isengard](https://github.com/alfredgamulo/quantumqat/actions/workflows/build.yml/badge.svg)](https://github.com/alfredgamulo/quantumqat/actions/workflows/build.yml)
+[![build-quantumqat](https://github.com/alfredgamulo/quantumqat/actions/workflows/build.yml/badge.svg)](https://github.com/alfredgamulo/quantumqat/actions/workflows/build.yml)
 
 The purpose in building this image is to cater to people who identify as gamers first, and as coders second.
 
@@ -28,14 +28,7 @@ rpm-ostree rebase ostree-image-signed:docker://ghcr.io/alfredgamulo/quantumqat:l
 You can build an [ISO](https://blue-build.org/learn/universal-blue/#fresh-install-from-an-iso) for offline installation by running
 
 ```bash
-sudo podman run --rm --privileged \
-    --volume .:/build-container-installer/build \
-    --security-opt label=disable --pull=newer \
-    ghcr.io/jasonn3/build-container-installer:latest \
-    IMAGE_REPO="ghcr.io/alfredgamulo" \
-    IMAGE_NAME="quantumqat" \
-    IMAGE_TAG="latest" \
-    VARIANT="Silverblue"
+just build-iso
 ```
 
 # Verification
