@@ -10,4 +10,5 @@ COPY scripts /scripts
 RUN /scripts/00_prepare.sh && \
     /scripts/10_build.sh && \
     /scripts/20_install.sh && \
+    /scripts/30_configure.sh && \
     ostree container commit

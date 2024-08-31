@@ -2,10 +2,6 @@
 
 set -ouex pipefail
 
-programming_packages=(
-  "code"
-)
-
 docker_packages=(
   "docker-ce"
   "docker-ce-cli"
@@ -14,9 +10,18 @@ docker_packages=(
   "docker-compose-plugin"
 )
 
+programming_packages=(
+  "code"
+)
+
+utility_packages=(
+  "1password"
+)
+
 packages=(
-  ${programming_packages[@]}
   ${docker_packages[@]}
+  ${programming_packages[@]}
+  ${utility_packages[@]}
 )
 
 rpm-ostree install ${packages[@]}
