@@ -2,4 +2,4 @@
 
 set -ouex pipefail
 
-RELEASE="$(rpm -E %fedora)"
+echo "import \"/usr/share/ublue-os/just/100-quantumqat.just\"" >> /usr/share/ublue-os/justfile
