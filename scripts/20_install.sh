@@ -14,9 +14,9 @@ programming_packages=(
   "code"
 )
 
-utility_packages=(
-  "1password"
-)
+# utility_packages=(
+#   "1password"
+# )
 
 packages=(
   ${docker_packages[@]}
