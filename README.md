@@ -3,7 +3,7 @@
 # QuantumQat
 [![build-quantumqat](https://github.com/alfredgamulo/quantumqat/actions/workflows/build.yml/badge.svg)](https://github.com/alfredgamulo/quantumqat/actions/workflows/build.yml)
 
-The purpose in building this image is to cater to people who identify as gamers first, and as coders second.
+The purpose in building this image is to cater to people who identify as gamers first, and as hackers second.
 
 This repository builds a custom Universal Blue image. THANK YOU to the giants that work on the Universal Blue Projects:
 - [Bazzite](https://bazzite.gg/)
