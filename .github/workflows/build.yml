@@ -154,16 +154,28 @@ jobs:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
 
       # Build the ISO
+      - name: Set Image Tag
+        id: generate_iso_tag
+        shell: bash
+        run: |
+          TAG="latest"
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              TAG="pr-${{ github.event.number }}"
+          fi
+
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+
       - name: Build ISO
         uses: jasonn3/build-container-installer@main
         id: build_iso
         with:
           image_name: ${{ env.MY_IMAGE_NAME}}
           image_repo: ${{ env.IMAGE_REGISTRY}}
-          image_tag: ${{ steps.build_image.outputs.tags[0] }}
+          image_tag: ${{ steps.generate_iso_tag.outputs.tag }}
           version: 40
           variant: Kinoite
-          iso_name: build/${{ env.MY_IMAGE_NAME }}-${{ steps.build_image.outputs.tags[0] }}.iso
+          iso_name: build/${{ env.MY_IMAGE_NAME }}-${{ steps.generate_iso_tag.outputs.tag }}.iso
 
       - name: Upload ISO as artifact
         id: upload
