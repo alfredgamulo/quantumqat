@@ -20,3 +20,5 @@ packages=(
 )
 
 rpm-ostree install ${packages[@]}
+
+chmod +x ./1password.sh && ./1password.sh
