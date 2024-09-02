@@ -16,4 +16,4 @@ build-iso image_tag="latest":
     SECURE_BOOT_KEY_URL="https://github.com/ublue-os/bazzite/raw/main/secure_boot.der" \
     ENROLLMENT_PASSWORD="universalblue" \
     ISO_NAME="/build-container-installer/build/quantumqat.iso" \
-    ADDITIONAL_TEMPLATES="/build-container-installer/build/installer/remove_root_password_prompt.tmpl /build-container-installer/build/installer/set_default_user.tmpl"
+    ADDITIONAL_TEMPLATES="/build-container-installer/build/installer/lorax_templates/remove_root_password_prompt.tmpl /build-container-installer/build/installer/lorax_templates/set_default_user.tmpl"
