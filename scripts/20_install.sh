@@ -19,6 +19,6 @@ packages=(
   ${programming_packages[@]}
 )
 
-rpm-ostree install ${packages[@]}
+rpm-ostree install --idempotent --allow-inactive ${packages[@]}
 
 chmod +x /scripts/1password.sh && /scripts/1password.sh
