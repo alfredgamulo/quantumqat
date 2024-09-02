@@ -4,11 +4,37 @@
 <svg
    version="1.1"
    id="svg1"
-   width="327.67999"
-   height="327.67999"
-   viewBox="0 0 327.67999 327.67999"
+   width="205.59695"
+   height="206.25841"
+   viewBox="0 0 205.59695 206.25841"
+   sodipodi:docname="logo.svg"
+   inkscape:version="1.3.2 (091e20ef0f, 2023-11-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="false"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:clip-to-page="false"
+     labelstyle="default"
+     showborder="false"
+     borderlayer="false"
+     inkscape:zoom="2.0802336"
+     inkscape:cx="92.778041"
+     inkscape:cy="95.90269"
+     inkscape:window-width="1444"
+     inkscape:window-height="1243"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="g1" />
   <defs
      id="defs1">
     <linearGradient
@@ -20,7 +46,8 @@
     </linearGradient>
   </defs>
   <g
-     id="g1">
+     id="g1"
+     transform="translate(-60.471337,-58.880859)">
     <path
        d="m 190.88086,157.84961 c -1.29175,0.14067 -0.67539,1.44992 2.52539,5.35742 2.45488,2.99691 3.31739,3.84413 3.83984,3.76953 0.4524,-0.0646 0.66657,-0.32032 0.65235,-0.77734 -0.0117,-0.37438 -1.45087,-2.42088 -3.19922,-4.54883 -2.32338,-2.82782 -3.35059,-3.85171 -3.81836,-3.80078 z"
        style="display:inline"
