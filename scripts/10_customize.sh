@@ -8,4 +8,3 @@ rm -f /etc/skel/.config/autostart/steam.desktop
 
 /usr/libexec/containerbuild/image-info
 /usr/libexec/containerbuild/build-initramfs
-/usr/libexec/containerbuild/cleanup.sh
