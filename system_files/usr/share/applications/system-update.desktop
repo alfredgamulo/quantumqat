@@ -6,4 +6,3 @@ Icon=/usr/share/ublue-os/bazzite/update.svg
 Categories=ConsoleOnly;System;
 Terminal=true
 Exec=/usr/bin/ujust update
-
