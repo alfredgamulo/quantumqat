@@ -2,4 +2,4 @@
 
 set -ouex pipefail
 
-systemctl enable docker.socket
+systemctl --global enable docker.socket
