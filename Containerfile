@@ -22,5 +22,5 @@ RUN /scripts/00_prepare.sh && \
     /scripts/10_customize.sh && \
     /scripts/20_install.sh && \
     /scripts/30_configure.sh && \
-    /scripts/90_cleanup.sh && \
+    /scripts/90_finalize.sh && \
     ostree container commit

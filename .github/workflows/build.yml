@@ -47,6 +47,8 @@ jobs:
 
           # Have tags for tracking builds during pull request
           SHA_SHORT="${GITHUB_SHA::7}"
+          echo "tag=${SHA_SHORT}" >> $GITHUB_OUTPUT
+
           COMMIT_TAGS+=("pr-${{ github.event.number }}")
           COMMIT_TAGS+=("${SHA_SHORT}")
 
@@ -65,9 +67,14 @@ jobs:
               done
 
               alias_tags=("${COMMIT_TAGS[@]}")
+
+              PRETTY="PR (${{ github.event.pull_request.number }})"
           else
               alias_tags=("${BUILD_TAGS[@]}")
+              PRETTY="Stable (${SHA_SHORT})"
           fi
+
+          echo "pretty=${PRETTY}" >> $GITHUB_OUTPUT
 
           echo "Generated the following build tags: "
           for TAG in "${BUILD_TAGS[@]}"; do
@@ -99,6 +106,9 @@ jobs:
             ./Containerfile
           # Postfix image name with -custom to make it a little more descriptive
           # Syntax: https://docs.github.com/en/actions/learn-github-actions/expressions#format
+          build-args: |
+            VERSION_TAG=${{ steps.generate-tags.outputs.tag }}
+            VERSION_PRETTY=${{ steps.generate-tags.outputs.pretty }}
           image: ${{ env.MY_IMAGE_NAME }}
           tags: |
             ${{ steps.generate-tags.outputs.alias_tags }}
