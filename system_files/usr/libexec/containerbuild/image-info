@@ -21,7 +21,7 @@ if [[ $IMAGE_BRANCH_NORMALIZED == "main" ]]; then
 fi
 
 case "$FEDORA_MAJOR_VERSION" in
-  39|40)
+  40|41)
     IMAGE_TAG="stable"
     ;;
   *)

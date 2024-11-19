@@ -183,7 +183,7 @@ jobs:
           image_name: ${{ env.MY_IMAGE_NAME}}
           image_repo: ${{ env.IMAGE_REGISTRY}}
           image_tag: ${{ steps.generate_iso_tag.outputs.tag }}
-          version: 40
+          version: 41
           variant: Kinoite
           secure_boot_key_url: 'https://github.com/ublue-os/bazzite/raw/main/secure_boot.der'
           enrollment_password: 'universalblue'
