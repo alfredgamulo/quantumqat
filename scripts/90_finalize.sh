@@ -6,6 +6,6 @@ set -ouex pipefail
 rm -f /etc/yum.repos.d/docker-ce.repo
 rm -f /etc/yum.repos.d/vscode.repo
 
-/ctx/image-info
+/usr/libexec/containerbuild/image-info
 /ctx/build-initramfs
 /ctx/cleanup
