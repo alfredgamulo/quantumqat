@@ -7,5 +7,5 @@ rm -f /etc/yum.repos.d/docker-ce.repo
 rm -f /etc/yum.repos.d/vscode.repo
 
 /usr/libexec/containerbuild/image-info
-/ctx/build-initramfs
-/ctx/cleanup
+/build-initramfs
+/cleanup
