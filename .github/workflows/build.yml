@@ -17,6 +17,7 @@ env:
   MY_IMAGE_NAME: "${{ github.event.repository.name }}"  # the name of the image produced by this build, matches repo names
   MY_IMAGE_DESC: "Custom Bazzite image tailored for hackers."
   IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"  # do not edit
+  MAJOR_VERSION: "42"  # the major version of the image, used for versioning the ISO
 
 jobs:
   build_push:
@@ -106,12 +107,12 @@ jobs:
             ./Containerfile
           # Postfix image name with -custom to make it a little more descriptive
           # Syntax: https://docs.github.com/en/actions/learn-github-actions/expressions#format
-          build-args: |
-            VERSION_TAG=${{ steps.generate-tags.outputs.tag }}
-            VERSION_PRETTY=${{ steps.generate-tags.outputs.pretty }}
           image: ${{ env.MY_IMAGE_NAME }}
           tags: |
             ${{ steps.generate-tags.outputs.alias_tags }}
+          build-args: |
+            VERSION_TAG=${{ steps.generate-tags.outputs.tag }}
+            VERSION_PRETTY=${{ steps.generate-tags.outputs.pretty }}
           labels: ${{ steps.meta.outputs.labels }}
           oci: false
 
@@ -183,8 +184,8 @@ jobs:
           image_name: ${{ env.MY_IMAGE_NAME}}
           image_repo: ${{ env.IMAGE_REGISTRY}}
           image_tag: ${{ steps.generate_iso_tag.outputs.tag }}
-          version: 42
           variant: Kinoite
+          version: ${{ env.MAJOR_VERSION }}
           secure_boot_key_url: 'https://github.com/ublue-os/bazzite/raw/main/secure_boot.der'
           enrollment_password: 'universalblue'
           additional_templates: '/github/workspace/installer/lorax_templates/remove_root_password_prompt.tmpl /github/workspace/installer/lorax_templates/set_default_user.tmpl'
