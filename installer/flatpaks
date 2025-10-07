@@ -1,5 +1,5 @@
+app/com.brave.Browser/x86_64/stable
 app/com.discordapp.Discord/x86_64/stable
-app/com.microsoft.Edge/x86_64/stable
 app/com.slack.Slack/x86_64/stable
 app/com.spotify.Client/x86_64/stable
 app/io.github.prateekmedia.appimagepool/x86_64/stable
@@ -7,6 +7,7 @@ app/io.github.pwr_solaar.solaar/x86_64/stable
 app/io.github.vikdevelop.SaveDesktop/x86_64/stable
 app/me.iepure.devtoolbox/x86_64/stable
 app/net.nokyan.Resources/x86_64/stable
+app/org.audacityteam.Audacity/x86_64/stable
 app/org.fedoraproject.MediaWriter/x86_64/stable
 app/org.gimp.GIMP/x86_64/stable
 app/org.inkscape.Inkscape/x86_64/stable
@@ -15,5 +16,4 @@ app/org.libreoffice.LibreOffice/x86_64/stable
 app/org.qbittorrent.qBittorrent/x86_64/stable
 app/org.signal.Signal/x86_64/stable
 app/org.standardnotes.standardnotes/x86_64/stable
-app/org.tenacityaudio.Tenacity/x86_64/stable
 app/org.videolan.VLC/x86_64/stable
