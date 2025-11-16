@@ -4,17 +4,20 @@ set -ouex pipefail
 
 # Function to get latest release download URL from GitHub
 # Usage: get_latest_github_release "owner/repo" "filename_pattern"
-# Example: get_latest_github_release "TibixDev/winboat" "*x86_64.rpm"
+# Example: get_latest_github_release "TibixDev/winboat" "x86_64.rpm"
 get_latest_github_release() {
   local repo="$1"
   local pattern="$2"
   
   # Get the latest release JSON from GitHub API
   local release_url="https://api.github.com/repos/${repo}/releases/latest"
+
+  # Convert glob pattern to regex (e.g., * becomes .*)
+  local regex_pattern=$(echo "${pattern}" | sed 's/\*/.*/')
   
   # Fetch the download URL matching the pattern
   curl --silent --fail "${release_url}" | \
-    grep -oP '"browser_download_url": "\K[^"]*'"${pattern}"'[^"]*' | \
+    grep -oP '"browser_download_url": "\K[^"]*'"${regex_pattern}"'[^"]*' | \
     head -n1
 }
 

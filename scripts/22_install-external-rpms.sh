@@ -10,7 +10,7 @@ echo "=== Installing External RPMs from GitHub ==="
 # Winboat - latest release
 echo ""
 echo "--- Winboat ---"
-WINBOAT_URL=$(get_latest_github_release "TibixDev/winboat" "*x86_64.rpm")
+WINBOAT_URL=$(get_latest_github_release "TibixDev/winboat" "x86_64.rpm")
 if [ -n "${WINBOAT_URL}" ]; then
   install_external_rpm "winboat" "${WINBOAT_URL}"
 else
