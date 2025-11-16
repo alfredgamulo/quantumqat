@@ -22,3 +22,5 @@ packages=(
 rpm-ostree install --idempotent --allow-inactive ${packages[@]}
 
 chmod +x /scripts/1password.sh && /scripts/1password.sh
+
+/scripts/22_install-external-rpms.sh
