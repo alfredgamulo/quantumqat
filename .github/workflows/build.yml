@@ -193,7 +193,7 @@ jobs:
 
       - name: Upload ISO as artifact
         id: upload
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ steps.build_iso.outputs.iso_name }}
           path: |
