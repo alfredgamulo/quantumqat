@@ -14,10 +14,15 @@ on:
   workflow_dispatch:
 
 env:
+  # The tag used in the image from which we base of.
+  # ex.: ghcr.io/org/image:IMAGE_SOURCE_TAG
+  IMAGE_SOURCE_TAG: "latest"
+  SOURCE_ORG: "ublue-os"
+  SOURCE_REPO: "bazzite"
+  # Custom
   MY_IMAGE_NAME: "${{ github.event.repository.name }}"  # the name of the image produced by this build, matches repo names
   MY_IMAGE_DESC: "Custom Bazzite image tailored for hackers."
   IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"  # do not edit
-  MAJOR_VERSION: "42"  # the major version of the image, used for versioning the ISO
 
 jobs:
   build_push:
@@ -36,6 +41,45 @@ jobs:
 
       - name: Maximize build space
         uses: ublue-os/remove-unwanted-software@v9
+
+      # OUTPUTS:
+      #   - SOURCE_VERSION: version of the source image. Ex.: testing-41.20250312
+      #   - SOURCE_VERSION_MAJOR: major version. Used to identify big releases. Ex.: 41
+      - name: Get image major version
+        id: fetch_source_meta
+        env:
+          org: ${{ env.SOURCE_ORG }}
+          BASE_IMAGE: ${{ env.SOURCE_REPO }}
+          IMAGE_SOURCE_TAG: ${{ env.IMAGE_SOURCE_TAG || 'latest' }}
+        run: |
+          set -x
+          # SOURCE_VERSION_MAJOR must be a number
+          declare -i SOURCE_VERSION_MAJOR=0
+
+          # There are some ways to get the major release from an image.
+          # First method: `skopeo inspect` and annotations.
+
+          SOURCE_VERSION=$(
+                skopeo inspect --no-tags --raw --config \
+                "docker://ghcr.io/${org}/${BASE_IMAGE}:${IMAGE_SOURCE_TAG}" | \
+                jq -r '.config.Labels["org.opencontainers.image.version"]'
+          )
+          if [[ -z $SOURCE_VERSION ]]; then
+            echo "::error::$SOURCE_VERSION was not fetched correctly: $SOURCE_VERSION=${$SOURCE_VERSION}"
+            exit 1
+          fi
+          echo "SOURCE_VERSION=$SOURCE_VERSION" >>$GITHUB_OUTPUT
+
+          SOURCE_VERSION_MAJOR=$([[ ${SOURCE_VERSION} =~ ^(.*-)?([[:digit:]]+) ]] && echo "${BASH_REMATCH[-1]}")
+          _status=$?
+          unset -v _tag
+
+          if [[ $_status -ne 0 ]] || [[ -z ${SOURCE_VERSION_MAJOR} ]] || (( SOURCE_VERSION_MAJOR <= 0 )); then
+            echo "::error::SOURCE_VERSION_MAJOR was not fetched correctly: SOURCE_VERSION_MAJOR=${SOURCE_VERSION_MAJOR}"
+            exit 1
+          fi
+
+          echo "SOURCE_VERSION_MAJOR=$SOURCE_VERSION_MAJOR" >>$GITHUB_OUTPUT        
 
       - name: Generate tags
         id: generate-tags
@@ -185,7 +229,7 @@ jobs:
           image_repo: ${{ env.IMAGE_REGISTRY}}
           image_tag: ${{ steps.generate_iso_tag.outputs.tag }}
           variant: Kinoite
-          version: ${{ env.MAJOR_VERSION }}
+          version: ${{ steps.fetch_source_meta.outputs.SOURCE_VERSION_MAJOR }}
           secure_boot_key_url: 'https://github.com/ublue-os/bazzite/raw/main/secure_boot.der'
           enrollment_password: 'universalblue'
           additional_templates: '/github/workspace/installer/lorax_templates/remove_root_password_prompt.tmpl /github/workspace/installer/lorax_templates/set_default_user.tmpl'
@@ -202,3 +246,24 @@ jobs:
           if-no-files-found: error
           retention-days: 0
           compression-level: 0
+
+  check:
+    name: Check all builds successful
+    if: always()
+    runs-on: ubuntu-latest
+    needs: [build_push]
+    steps:
+      - name: Check Jobs
+        env:
+          JOBS: ${{ toJson(needs) }}
+        run: |
+          echo "Job status:"
+          echo $JOBS | jq -r 'to_entries[] | " - \(.key): \(.value.result)"'
+
+          for i in $(echo $JOBS | jq -r 'to_entries[] | .value.result'); do
+            if [ "$i" != "success" ] && [ "$i" != "skipped" ]; then
+              echo ""
+              echo "Status check not okay!"
+              exit 1
+            fi
+          done
