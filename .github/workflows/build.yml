@@ -1,5 +1,5 @@
 ---
-name: build-qittyqat
+name: build-quantumqat
 on:
   pull_request:
     branches:
@@ -13,51 +13,67 @@ on:
       - '**/README.md'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
 env:
-  # The tag used in the image from which we base of.
-  # ex.: ghcr.io/org/image:IMAGE_SOURCE_TAG
-  IMAGE_SOURCE_TAG: "latest"
   SOURCE_ORG: "ublue-os"
   SOURCE_REPO: "bazzite"
-  # Custom
-  MY_IMAGE_NAME: "${{ github.event.repository.name }}"  # the name of the image produced by this build, matches repo names
-  MY_IMAGE_DESC: "Custom Bazzite image tailored for hackers."
-  IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"  # do not edit
+  IMAGE_SOURCE_TAG: "stable"
+  MY_IMAGE_NAME: "quantumqat"
+  IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"
 
+# Actions are pinned to full commit SHAs for supply-chain safety. The trailing
+# "# vX" comment lets Dependabot (.github/dependabot.yml) bump the SHA + comment
+# when a new release is published.
 jobs:
   build_push:
     name: Build and push image
     runs-on: ubuntu-24.04
-
     permissions:
       contents: read
       packages: write
       id-token: write
-
     steps:
-      # Checkout push-to-registry action GitHub repository
-      - name: Checkout Push to Registry action
-        uses: actions/checkout@v7
+      # The entire build/sign/push is handled by the reusable BlueBuild action.
+      # It reads recipes/recipe.yml, builds the image, signs it with cosign
+      # (SIGNING_SECRET), and pushes to ghcr.io/<owner>/quantumqat.
+      - name: Build Custom Image
+        uses: blue-build/github-action@24d146df25adc2cf579e918efe2d9bff6adea408  # v1.11
+        with:
+          recipe: recipe.yml
+          cosign_private_key: ${{ secrets.SIGNING_SECRET }}
+          registry_token: ${{ github.token }}
+          pr_event_number: ${{ github.event.number }}
+          maximize_build_space: true
 
-      - name: Maximize build space
-        uses: ublue-os/remove-unwanted-software@v9
+  build_iso:
+    name: Build ISO
+    runs-on: ubuntu-24.04
+    needs: build_push
+    # The BlueBuild action does not publish a pullable image on pull_request
+    # events, so build the ISO only on push/schedule/manual runs where the
+    # `latest` image exists. PRs still validate that the image builds.
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7
 
       # OUTPUTS:
-      #   - SOURCE_VERSION: version of the source image. Ex.: testing-41.20250312
-      #   - SOURCE_VERSION_MAJOR: major version. Used to identify big releases. Ex.: 41
+      #   - SOURCE_VERSION_MAJOR: Fedora major version of the base image (e.g. 43)
       - name: Get image major version
         id: fetch_source_meta
         env:
           org: ${{ env.SOURCE_ORG }}
           BASE_IMAGE: ${{ env.SOURCE_REPO }}
-          IMAGE_SOURCE_TAG: ${{ env.IMAGE_SOURCE_TAG || 'latest' }}
+          IMAGE_SOURCE_TAG: ${{ env.IMAGE_SOURCE_TAG }}
         run: |
           set -x
-          # SOURCE_VERSION_MAJOR must be a number
           declare -i SOURCE_VERSION_MAJOR=0
-
-          # There are some ways to get the major release from an image.
-          # First method: `skopeo inspect` and annotations.
 
           SOURCE_VERSION=$(
                 skopeo inspect --no-tags --raw --config \
@@ -65,179 +81,42 @@ jobs:
                 jq -r '.config.Labels["org.opencontainers.image.version"]'
           )
           if [[ -z $SOURCE_VERSION ]]; then
-            echo "::error::$SOURCE_VERSION was not fetched correctly: $SOURCE_VERSION=${$SOURCE_VERSION}"
+            echo "::error::SOURCE_VERSION was not fetched correctly"
             exit 1
           fi
-          echo "SOURCE_VERSION=$SOURCE_VERSION" >>$GITHUB_OUTPUT
 
           SOURCE_VERSION_MAJOR=$([[ ${SOURCE_VERSION} =~ ^(.*-)?([[:digit:]]+) ]] && echo "${BASH_REMATCH[-1]}")
-          _status=$?
-          unset -v _tag
-
-          if [[ $_status -ne 0 ]] || [[ -z ${SOURCE_VERSION_MAJOR} ]] || (( SOURCE_VERSION_MAJOR <= 0 )); then
-            echo "::error::SOURCE_VERSION_MAJOR was not fetched correctly: SOURCE_VERSION_MAJOR=${SOURCE_VERSION_MAJOR}"
+          if [[ -z ${SOURCE_VERSION_MAJOR} ]] || (( SOURCE_VERSION_MAJOR <= 0 )); then
+            echo "::error::SOURCE_VERSION_MAJOR was not fetched correctly: ${SOURCE_VERSION_MAJOR}"
             exit 1
           fi
 
-          echo "SOURCE_VERSION_MAJOR=$SOURCE_VERSION_MAJOR" >>$GITHUB_OUTPUT        
+          echo "SOURCE_VERSION_MAJOR=$SOURCE_VERSION_MAJOR" >>$GITHUB_OUTPUT
 
-      - name: Generate tags
-        id: generate-tags
-        shell: bash
-        run: |
-          # Generate a timestamp for creating an image version history
-          TIMESTAMP="$(date +%Y%m%d)"
-          COMMIT_TAGS=()
-          BUILD_TAGS=()
-
-          # Have tags for tracking builds during pull request
-          SHA_SHORT="${GITHUB_SHA::7}"
-          echo "tag=${SHA_SHORT}" >> $GITHUB_OUTPUT
-
-          COMMIT_TAGS+=("pr-${{ github.event.number }}")
-          COMMIT_TAGS+=("${SHA_SHORT}")
-
-          # Append matching timestamp tags to keep a version history
-          for TAG in "${BUILD_TAGS[@]}"; do
-              BUILD_TAGS+=("${TAG}-${TIMESTAMP}")
-          done
-
-          BUILD_TAGS+=("${TIMESTAMP}")
-          BUILD_TAGS+=("latest")
-
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-              echo "Generated the following commit tags: "
-              for TAG in "${COMMIT_TAGS[@]}"; do
-                  echo "${TAG}"
-              done
-
-              alias_tags=("${COMMIT_TAGS[@]}")
-
-              PRETTY="PR (${{ github.event.pull_request.number }})"
-          else
-              alias_tags=("${BUILD_TAGS[@]}")
-              PRETTY="Stable (${SHA_SHORT})"
-          fi
-
-          echo "pretty=${PRETTY}" >> $GITHUB_OUTPUT
-
-          echo "Generated the following build tags: "
-          for TAG in "${BUILD_TAGS[@]}"; do
-              echo "${TAG}"
-          done
-
-          echo "alias_tags=${alias_tags[*]}" >> $GITHUB_OUTPUT
-
-      # Build metadata
-      - name: Image Metadata
-        uses: docker/metadata-action@v6
-        id: meta
-        with:
-          images: |
-            ${{ env.MY_IMAGE_NAME }}
-
-          labels: |
-            io.artifacthub.package.readme-url=https://raw.githubusercontent.com/${{ github.repository }}/main/README.md
-            io.artifacthub.package.logo-url=https://raw.githubusercontent.com/${{ github.repository }}/main/assets/logo.jpg
-            org.opencontainers.image.description=${{ env.MY_IMAGE_DESC }}
-            org.opencontainers.image.title=${{ env.MY_IMAGE_NAME }}
-
-      # Build image using Buildah action
-      - name: Build Image
-        id: build_image
-        uses: redhat-actions/buildah-build@v2
-        with:
-          containerfiles: |
-            ./Containerfile
-          # Postfix image name with -custom to make it a little more descriptive
-          # Syntax: https://docs.github.com/en/actions/learn-github-actions/expressions#format
-          image: ${{ env.MY_IMAGE_NAME }}
-          tags: |
-            ${{ steps.generate-tags.outputs.alias_tags }}
-          build-args: |
-            VERSION_TAG=${{ steps.generate-tags.outputs.tag }}
-            VERSION_PRETTY=${{ steps.generate-tags.outputs.pretty }}
-          labels: ${{ steps.meta.outputs.labels }}
-          oci: false
-
-      # Workaround bug where capital letters in your GitHub username make it impossible to push to GHCR.
-      # https://github.com/macbre/push-to-ghcr/issues/12
+      # GitHub usernames may contain uppercase letters which GHCR rejects.
       - name: Lowercase Registry
         id: registry_case
-        uses: ASzc/change-string-case-action@v8
+        uses: ASzc/change-string-case-action@ecd1412d078f2e06e9eedcbaa6fcd988151c3f82  # v8
         with:
           string: ${{ env.IMAGE_REGISTRY }}
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push Image to GHCR
-        uses: redhat-actions/push-to-registry@v2
-        id: push
-        env:
-          REGISTRY_USER: ${{ github.actor }}
-          REGISTRY_PASSWORD: ${{ github.token }}
-        with:
-          image: ${{ steps.build_image.outputs.image }}
-          tags: ${{ steps.build_image.outputs.tags }}
-          registry: ${{ steps.registry_case.outputs.lowercase }}
-          username: ${{ env.REGISTRY_USER }}
-          password: ${{ env.REGISTRY_PASSWORD }}
-          extra-args: |
-            --disable-content-trust
-
-      # This section is optional and only needs to be enabled in you plan on distributing
-      # your project to others to consume. You will need to create a public and private key
-      # using Cosign and save the private key as a repository secret in Github for this workflow
-      # to consume. For more details, review the image signing section of the README.
-
-      # Sign container
-      - uses: sigstore/cosign-installer@v4.1.2
-        if: github.event_name != 'pull_request'
-
-      - name: Sign container image
-        if: github.event_name != 'pull_request'
-        run: |
-          cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ steps.registry_case.outputs.lowercase }}/${{ steps.build_image.outputs.image }}@${TAGS}
-        env:
-          TAGS: ${{ steps.push.outputs.digest }}
-          COSIGN_EXPERIMENTAL: false
-          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
-
-      # Build the ISO
-      - name: Set Image Tag
-        id: generate_iso_tag
-        shell: bash
-        run: |
-          TAG="latest"
-
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-              TAG="pr-${{ github.event.number }}"
-          fi
-
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
-
       - name: Build ISO
-        uses: jasonn3/build-container-installer@main
+        uses: jasonn3/build-container-installer@c9ef3de33236e66781ec37bd0485e8009eaefe24  # v1.4.0
         id: build_iso
         with:
-          image_name: ${{ env.MY_IMAGE_NAME}}
-          image_repo: ${{ env.IMAGE_REGISTRY}}
-          image_tag: ${{ steps.generate_iso_tag.outputs.tag }}
+          image_name: ${{ env.MY_IMAGE_NAME }}
+          image_repo: ${{ steps.registry_case.outputs.lowercase }}
+          image_tag: latest
           variant: Kinoite
           version: ${{ steps.fetch_source_meta.outputs.SOURCE_VERSION_MAJOR }}
           secure_boot_key_url: 'https://github.com/ublue-os/bazzite/raw/main/secure_boot.der'
           enrollment_password: 'universalblue'
           additional_templates: '/github/workspace/installer/lorax_templates/remove_root_password_prompt.tmpl /github/workspace/installer/lorax_templates/set_default_user.tmpl'
-          iso_name: build/${{ env.MY_IMAGE_NAME }}-${{ steps.generate_iso_tag.outputs.tag }}.iso
+          iso_name: build/${{ env.MY_IMAGE_NAME }}-latest.iso
 
       - name: Upload ISO as artifact
         id: upload
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: ${{ steps.build_iso.outputs.iso_name }}
           path: |
@@ -251,7 +130,7 @@ jobs:
     name: Check all builds successful
     if: always()
     runs-on: ubuntu-latest
-    needs: [build_push]
+    needs: [build_push, build_iso]
     steps:
       - name: Check Jobs
         env:

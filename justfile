@@ -1,6 +1,14 @@
 _:
     @just --list -u --list-heading $'🐈‍⬛ QuantumQat \n'
 
+# Build the image locally with the BlueBuild CLI
+build recipe="recipe.yml":
+    bluebuild build ./recipes/{{recipe}}
+
+# Build the image and rebase the local system onto it (requires bluebuild + root)
+rebase recipe="recipe.yml":
+    bluebuild rebase ./recipes/{{recipe}}
+
 # Build the local offline ISO
 build-iso image_tag="latest":
     #!/usr/bin/env bash
