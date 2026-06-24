@@ -1,0 +1,99 @@
+---
+name: release-watch
+# Opens a GitHub issue when a tracked upstream project publishes a release newer
+# than the version pinned in this repo. The list of tracked packages lives in
+# .github/release-watch.json — add an entry to watch a new package:
+#
+#   { "name": "<label>", "repo": "<owner/repo>",
+#     "pin_file": "<file with the pinned version>", "pin_key": "<VAR name>" }
+#
+# The current version is read from pin_file as: <pin_key>="<version>"
+on:
+  schedule:
+    - cron: '30 9 * * 1'  # Mondays 09:30 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    name: Check tracked upstream releases
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7
+
+      - name: Ensure the release-update label exists
+        run: |
+          gh label create release-update \
+            --color FBCA04 \
+            --description "A tracked upstream release is newer than the pinned version" \
+            --force
+
+      - name: Compare pinned versions against latest releases
+        run: |
+          set -euo pipefail
+          manifest=.github/release-watch.json
+          failed=0
+
+          # Fetch the open notifier issues once, not once per package.
+          open_titles=$(gh issue list --state open --label release-update \
+            --json title --jq '.[].title' || true)
+
+          while IFS=$'\t' read -r name repo pin_file pin_key; do
+            # Read the pinned version straight from the source file (single
+            # source of truth). Contract: it is written as <pin_key>="<version>".
+            current=$(grep -oPm1 "(?<=${pin_key}=\")[^\"]+" "$pin_file" || true)
+            if [ -z "$current" ]; then
+              # A bad/misconfigured entry must fail loudly, not silently skip,
+              # otherwise the watcher goes blind for that package.
+              echo "::error::$name: could not read $pin_key=\"...\" from $pin_file"
+              failed=1
+              continue
+            fi
+
+            latest=$(gh api "repos/$repo/releases/latest" --jq '.tag_name' 2>/dev/null || true)
+            latest=${latest#v}   # normalise a leading "v"
+            if [ -z "$latest" ]; then
+              echo "::warning::$name: could not fetch the latest release of $repo"
+              continue
+            fi
+
+            # Notify only when latest is strictly newer (version-ordered), so an
+            # equal, rolling, or re-tagged-older release does not spam issues.
+            newest=$(printf '%s\n%s\n' "$current" "$latest" | sort -V | tail -n1)
+            if [ "$latest" = "$current" ] || [ "$newest" != "$latest" ]; then
+              echo "$name: up to date (pinned $current, latest $latest)"
+              continue
+            fi
+
+            # Stable, version-independent title so repeated upstream releases
+            # while still behind reuse the one open issue instead of duplicating.
+            title="chore($name): a newer upstream release is available"
+            if grep -Fxq "$title" <<<"$open_titles"; then
+              echo "$name: issue already open"
+              continue
+            fi
+
+            echo "$name: opening issue ($current -> $latest)"
+            body=$(printf '%s\n' \
+              "$repo published a release newer than the one pinned here." \
+              "" \
+              "Pinned:  $current   (in $pin_file)" \
+              "Latest:  $latest    (https://github.com/$repo/releases/latest)" \
+              "" \
+              "To update:" \
+              "1. Bump $pin_key in $pin_file to the new version." \
+              "2. If the package is checksum-verified, re-download and update its SHA-256 — unsigned third-party binaries must be re-vetted by hand." \
+              "3. Open a PR; CI fails if the checksum does not match." \
+              "" \
+              "Opened automatically by .github/workflows/release-watch.yml")
+
+            gh issue create --title "$title" --label release-update --body "$body"
+          done < <(jq -r '.[] | [.name, .repo, .pin_file, .pin_key] | @tsv' "$manifest")
+
+          exit "$failed"

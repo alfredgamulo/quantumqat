@@ -1,0 +1,8 @@
+[
+  {
+    "name": "winboat",
+    "repo": "TibixDev/winboat",
+    "pin_file": "files/scripts/20-install-winboat.sh",
+    "pin_key": "WINBOAT_VERSION"
+  }
+]

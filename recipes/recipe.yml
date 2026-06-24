@@ -1,0 +1,94 @@
+---
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+version: 1
+name: quantumqat
+description: Custom Bazzite image tailored for hackers.
+base-image: ghcr.io/ublue-os/bazzite
+image-version: stable
+
+modules:
+  # Copy /etc and /usr config (profile.d, skel, plasma avatars, sixel logos, ...)
+  - type: files
+    files:
+      - source: system
+        destination: /
+
+  # Create /var/lib/alternatives before package installs, then apply
+  # customizations (remove Steam autostart, write custom-image-info.json)
+  - type: script
+    scripts:
+      - 00-prepare.sh
+      - 10-customize.sh
+
+  # Docker CE + VS Code (custom repos in files/dnf/, cleaned up after install)
+  # plus infosec tooling from the Fedora repos.
+  - type: dnf
+    repos:
+      cleanup: true
+      files:
+        - docker-ce.repo
+        - vscode.repo
+    install:
+      packages:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-buildx-plugin
+        - docker-compose-plugin
+        - code
+        # Infosec tools (formerly the install-infosec-tools just recipe)
+        - bluez-tools
+        - netcat
+        - nmap
+        - sox
+
+  # 1Password. Relies on the CLI's automatic optfix (the bling installer no
+  # longer relocates /opt/1Password itself as of blue-build/modules#570).
+  - type: bling
+    install:
+      - 1password
+
+  # Winboat (latest GitHub-release RPM) — no module exists, install via script.
+  - type: script
+    scripts:
+      - 20-install-winboat.sh
+
+  # QuantumQat flatpaks (formerly the install-system-flatpaks just recipe).
+  # Installed from Flathub on first boot via systemd. Bazzite installs its own
+  # default flatpaks separately, so only the QuantumQat additions are listed.
+  - type: default-flatpaks
+    configurations:
+      - scope: system
+        install:
+          - com.brave.Browser
+          - com.discordapp.Discord
+          - com.slack.Slack
+          - com.spotify.Client
+          - io.github.prateekmedia.appimagepool
+          - io.github.pwr_solaar.solaar
+          - io.github.vikdevelop.SaveDesktop
+          - me.iepure.devtoolbox
+          - net.nokyan.Resources
+          - org.audacityteam.Audacity
+          - org.fedoraproject.MediaWriter
+          - org.gimp.GIMP
+          - org.inkscape.Inkscape
+          - org.kde.yakuake
+          - org.libreoffice.LibreOffice
+          - org.qbittorrent.qBittorrent
+          - org.signal.Signal
+          - org.standardnotes.standardnotes
+          - org.videolan.VLC
+
+  # Import the custom justfile (files/justfiles/100-quantumqat.just) — adds the
+  # `ujust setup-1password-browser` recipe.
+  - type: justfiles
+
+  # Enable the Docker socket
+  - type: systemd
+    system:
+      enabled:
+        - docker.socket
+
+  # Set up cosign signing policy so deployed systems can verify image updates
+  - type: signing

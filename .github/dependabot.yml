@@ -5,6 +5,9 @@
 
 version: 2
 updates:
+  # Tracks the SHA-pinned GitHub Actions in .github/workflows/. Dependabot reads
+  # the "# vX" comment beside each pinned SHA and opens a PR that bumps both the
+  # SHA and the comment when a newer release is published.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
