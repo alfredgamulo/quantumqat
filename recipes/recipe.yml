@@ -36,6 +36,7 @@ modules:
         - docker-buildx-plugin
         - docker-compose-plugin
         - code
+        - yakuake
         # Infosec tools (formerly the install-infosec-tools just recipe)
         - bluez-tools
         - netcat
@@ -73,7 +74,6 @@ modules:
           - org.fedoraproject.MediaWriter
           - org.gimp.GIMP
           - org.inkscape.Inkscape
-          - org.kde.yakuake
           - org.libreoffice.LibreOffice
           - org.qbittorrent.qBittorrent
           - org.signal.Signal
