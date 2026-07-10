@@ -40,7 +40,7 @@ jobs:
       # It reads recipes/recipe.yml, builds the image, signs it with cosign
       # (SIGNING_SECRET), and pushes to ghcr.io/<owner>/quantumqat.
       - name: Build Custom Image
-        uses: blue-build/github-action@24d146df25adc2cf579e918efe2d9bff6adea408  # v1.11
+        uses: blue-build/github-action@836161eb076426a451e6a0054f722b1153b8b3ad  # v1.12.0
         with:
           recipe: recipe.yml
           cosign_private_key: ${{ secrets.SIGNING_SECRET }}
