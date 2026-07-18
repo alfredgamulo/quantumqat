@@ -43,12 +43,18 @@ jobs:
         uses: blue-build/github-action@24d146df25adc2cf579e918efe2d9bff6adea408  # v1.11
         with:
           recipe: recipe.yml
-          # Dependabot-triggered `pull_request` runs get NO access to Actions
-          # secrets (GitHub security policy), so `secrets.SIGNING_SECRET` is
-          # empty there and cosign signing fails the whole job. Only pass the
-          # key on non-PR events; PR builds still validate the image builds,
-          # they just skip signing. The real sign+push happens on push to main.
-          cosign_private_key: ${{ github.event_name != 'pull_request' && secrets.SIGNING_SECRET || '' }}
+          # Only push+sign on non-PR events. The action defaults to push=true
+          # and always cosign-signs what it pushes, so on a `pull_request` it
+          # tries to push a `pr-<n>`-tagged image AND sign it. Signing needs
+          # SIGNING_SECRET, which is empty on PRs (Dependabot PRs get no Actions
+          # secrets at all; regular PRs would sign but we don't want unreviewed
+          # code pushed under our key), so the job fails early at the cosign
+          # step (~10s). Setting push=false on PRs makes them build-only: the
+          # image is still fully built and validated, just not published or
+          # signed. The real sign+push happens on the push to main after merge
+          # (see the build_iso note below, which relies on the same condition).
+          push: ${{ github.event_name != 'pull_request' }}
+          cosign_private_key: ${{ secrets.SIGNING_SECRET }}
           registry_token: ${{ github.token }}
           pr_event_number: ${{ github.event.number }}
           maximize_build_space: true
