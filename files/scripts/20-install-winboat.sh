@@ -9,8 +9,8 @@ set -euo pipefail
 #
 # To update: bump WINBOAT_VERSION, download the new RPM, `sha256sum` it, and put
 # the result in WINBOAT_SHA256.
-WINBOAT_VERSION="0.9.0"
-WINBOAT_SHA256="64338d6d61faf761a441fc59d3129aa346ce65905e12af329a08dff40308f5f7"
+WINBOAT_VERSION="0.9.2"
+WINBOAT_SHA256="748dd6cdffe860cf96fc9a1eb34ed8fb9aa035f02f16b385fb1bd97540a2bdf1"
 
 WINBOAT_URL="https://github.com/TibixDev/winboat/releases/download/v${WINBOAT_VERSION}/winboat-${WINBOAT_VERSION}-x86_64.rpm"
 TEMP_FILE="/tmp/winboat.rpm"
