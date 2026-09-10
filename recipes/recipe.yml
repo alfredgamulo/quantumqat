@@ -43,15 +43,15 @@ modules:
         - nmap
         - sox
 
-  # 1Password. Relies on the CLI's automatic optfix (the bling installer no
-  # longer relocates /opt/1Password itself as of blue-build/modules#570).
-  - type: bling
-    install:
-      - 1password
-
+  # 1Password. Internalized from blue-build/modules' bling installer (see
+  # 15-install-1password.sh for why) — relies on the CLI's automatic optfix
+  # (the old bling installer no longer relocated /opt/1Password itself as of
+  # blue-build/modules#570, and this script doesn't either).
+  #
   # Winboat (latest GitHub-release RPM) — no module exists, install via script.
   - type: script
     scripts:
+      - 15-install-1password.sh
       - 20-install-winboat.sh
 
   # QuantumQat flatpaks (formerly the install-system-flatpaks just recipe).
